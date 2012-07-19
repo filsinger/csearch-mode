@@ -1,13 +1,22 @@
 ;; csearch-mode.el
 ;;
-;; url: github.com/filsinger/csearch-mode
+;; url: https://github.com/filsinger/csearch-mode/
 ;;
 ;; author: Jason Filsinger
 ;;
 ;;
-
+;; version 0.0.1
+;;
+;; note: On OS X you might need to specify the path to the csearch executable.
+;;       The osx GUI usually doesnt contain the propper search path
+;;       for executable files (because it's not run from the shell).
+;;
+;;       e.g.
+;;       (setq csearch/csearch-executable "/usr/local/bin/csearch")
+;;
 
 (defvar csearch/result-regexp "^\\(.+?\\):\\([0-9]+?\\):\\(.+\\)[\n]")
+(defvar csearch/csearch-executable "csearch" "Path to the csearch executable")
 
 (defvar csearch/keymap (make-sparse-keymap))
 (define-key csearch/keymap (kbd "RET") 'csearch/select-match)
@@ -52,25 +61,18 @@
 		(progn
 		  (find-file-existing selected-file)
 		  (goto-char (point-min))
-		  (forward-line selected-line)
-		  )
-	  (error (concat "File not found: " selected-file))
-	  )
-	)
-  )
+		  (forward-line selected-line))
+	  (error (concat "File not found: " selected-file)))))
 
 (defun csearch/insert-sorted-lines (ARG &optional REVERSE)
   ""
   (save-excursion
 	(let ((entries-start (point)))
-	  (insert (shell-command-to-string (concat "~/bin/csearch -n " regexp)))
-	  (sort-lines nil entries-start (point))
-	  )
-	)
-)
+	  (insert (shell-command-to-string (concat (if csearch/csearch-executable csearch/csearch-executable "csearch") " -n " regexp)))
+	  (sort-lines nil entries-start (point)))))
 
 (defun csearch/csearch (regexp)
-  "run the csearch tool"
+  "Run the csearch tool"
   (with-current-buffer (switch-to-buffer-other-window "*csearch-list*")
 	(setq buffer-read-only nil)
 	(erase-buffer)
