@@ -2,9 +2,9 @@
 ;;
 ;; url: https://github.com/filsinger/csearch-mode/
 ;;
-;; author: Jason Filsinger
+;; author: Jason Filsinger (https://github.com/filsinger)
 ;;
-;; version 0.1.0
+;; version 0.1.1
 ;;
 ;; note: On OS X you might need to specify the path to the csearch executable.
 ;;       The osx GUI usually doesnt contain the propper search path
@@ -27,6 +27,9 @@
   "codesearch index file.  This value is assigned to the environment variable CSEARCHINDEX before invoking csearch.  Default value is `~/.csearchindex'"
   :type 'string
   :group `csearch-mode)
+
+(defvar csearch/seach-history nil
+  "Search history for csearch")
 
 (defvar csearch/match-face 'match
   "Face name to use for csearch matches")
@@ -87,7 +90,7 @@ csearch will use the INDEX-FILE for it's search index.
 ;;;###autoload
 (defun csearch/apropos (regexp)
   "Display a list of all symbols in the csearch index that REGEXP matches"
-  (interactive "MSymbol (word or regexp): ")
+  (interactive (list (read-string "Symbol (word or regexp): " nil 'csearch/search-history)))
   (csearch/csearch regexp nil csearch/index-file))
 
 (provide 'csearch-mode)
