@@ -20,13 +20,13 @@
 
 (defcustom csearch/program "csearch"
   "Path to the csearch executable"
-  :type `string
-  :group `csearch-mode)
+  :type 'string
+  :group 'csearch-mode)
 
 (defcustom csearch/index-file nil
   "codesearch index file.  This value is assigned to the environment variable CSEARCHINDEX before invoking csearch.  Default value is `~/.csearchindex'"
   :type 'string
-  :group `csearch-mode)
+  :group 'csearch-mode)
 
 (defvar csearch/seach-history nil
   "Search history for csearch")
