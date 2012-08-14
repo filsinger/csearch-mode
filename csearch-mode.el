@@ -52,7 +52,7 @@ This gets tacked on the end of generated expressions.")
 	  (insert ARG)
 	  (sort-lines nil entries-start (point)))))
 
-(defun csearch/csearch (regexp &optional case-insensitive index-file)
+(defun csearch/csearch (regexp &optional case-insensitive file-regexp index-file)
   "Run the csearch tool and search for the provided REGEXP
 
 If CASE-INSENSITIVE is provided then csearch will perform a
@@ -65,6 +65,7 @@ csearch will use the INDEX-FILE for it's search index.
 	(let ((csearch-command (concat
 							(if csearch/program csearch/program "csearch")
 							" "
+							(when file-regexp (concat "-f " file-regexp " "))
 							(when case-insensitive "-i ")
 							"-n "
 							regexp))
@@ -88,9 +89,21 @@ csearch will use the INDEX-FILE for it's search index.
 	(setq buffer-read-only t)))
 
 ;;;###autoload
-(defun csearch/apropos (regexp)
+(defun csearch/search (regexp)
   "Display a list of all symbols in the csearch index that REGEXP matches"
   (interactive (list (read-string "Symbol (word or regexp): " nil 'csearch/search-history)))
-  (csearch/csearch regexp nil csearch/index-file))
+  (csearch/csearch regexp nil nil csearch/index-file))
+
+;;;###autoload
+(defun csearch/search-in-files (file-regexp regexp)
+  "Display a list of all symbols in the csearch index that REGEXP matches"
+  (interactive (list
+				(read-string "csearch (file regexp): " nil 'csearch/file-regexp-history)
+				(read-string "csearch (word or regexp): " nil 'csearch/search-history)
+				))
+  (csearch/csearch regexp nil file-regexp csearch/index-file))
+
+;;;###autoload
+(defalias 'csearch/apropos (symbol-function 'csearch/search))
 
 (provide 'csearch-mode)
