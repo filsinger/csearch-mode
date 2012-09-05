@@ -22,5 +22,6 @@ csearch located in a non-standard search path.
 If this is the case you can set the csearch executable path manually in your `.emacs` file.
 
 ```lisp
-(setq csearch/csearch-executable "~/bin/csearch")
+(setq csearch/csearch-program "~/bin/csearch")
+(setq csearch/cindex-program "~/bin/cindex")
 ```
