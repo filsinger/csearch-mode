@@ -22,21 +22,24 @@
 ;;   (add-hook 'find-file-hook 'csearch/find-file-hook-function)
 ;;
 
-
+;;;###autoload
 (defgroup csearch-mode nil
   "*csearch"
   :group 'csearch-mode)
 
+;;;###autoload
 (defcustom csearch/csearch-program "csearch"
   "Path to the csearch executable"
   :type '(file :must-match t)
   :group 'csearch-mode)
 
+;;;###autoload
 (defcustom csearch/cindex-program "cindex"
   "Path to the csearch executable"
   :type '(file :must-match t)
   :group 'csearch-mode)
 
+;;;###autoload
 (defcustom csearch/index-file nil
   "Codesearch index file.  This value is assigned to the environment variable CSEARCHINDEX before invoking csearch.  Default value is `~/.csearchindex'"
   :type 'file
