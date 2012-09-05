@@ -29,17 +29,17 @@
 
 (defcustom csearch/csearch-program "csearch"
   "Path to the csearch executable"
-  :type 'string
+  :type '(file :must-match t)
   :group 'csearch-mode)
 
 (defcustom csearch/cindex-program "cindex"
   "Path to the csearch executable"
-  :type 'string
+  :type '(file :must-match t)
   :group 'csearch-mode)
 
 (defcustom csearch/index-file nil
   "Codesearch index file.  This value is assigned to the environment variable CSEARCHINDEX before invoking csearch.  Default value is `~/.csearchindex'"
-  :type 'string
+  :type 'file
   :group 'csearch-mode)
 
 (defcustom csearch/auto-find-index t
