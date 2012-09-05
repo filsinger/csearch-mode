@@ -4,7 +4,7 @@
 ;;
 ;; author: Jason Filsinger (https://github.com/filsinger)
 ;;
-;; version 0.2.0
+;; version 0.2.1
 ;;
 ;; note: On OS X you might need to specify the path to the csearch executable.
 ;;       The osx GUI usually doesnt contain the propper search path
