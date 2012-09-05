@@ -194,7 +194,7 @@ csearch will use the INDEX-FILE for it's search index.
   (let ((default-search-string (if (region-active-p) (buffer-substring-no-properties (region-beginning) (region-end)) (thing-at-point 'symbol) )))
 		  (if non-interactive
 			  (substring-no-properties default-search-string)
-			  (read-string (format "Symbol (word or regexp) %s:" (if default-search-string (format "[default: %s]" default-search-string) "") ) nil 'history default-search-string)  )))
+			  (read-string (format "%s%s: " prompt (if default-search-string (format " [default: %s]" default-search-string) "") ) nil 'history default-search-string) )))
 
 ;;;###autoload
 (defun csearch/search (regexp)
