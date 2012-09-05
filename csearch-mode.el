@@ -190,17 +190,17 @@ csearch will use the INDEX-FILE for it's search index.
 
 
 ;;;###autoload
-(defun csearch/get-region-or-prompt-string (prompt &optional history non-interactive)
-  ""
+(defun csearch/read-string-region-or-prompt-string (prompt &optional history non-interactive)
+  "Similar to read-string except it sets the default value to the selected region or the thing-at-point ('symbol)"
   (let ((default-search-string (if (region-active-p) (buffer-substring-no-properties (region-beginning) (region-end)) (thing-at-point 'symbol) )))
 		  (if non-interactive
 			  (substring-no-properties default-search-string)
 			  (read-string (format "Symbol (word or regexp) %s:" (if default-search-string (format "[default: %s]" default-search-string) "") ) nil 'history default-search-string)  )))
 
 ;;;###autoload
-(defun csearch/apropos (regexp)
+(defun csearch/search (regexp)
   "Display a list of all symbols in the csearch index that REGEXP matches"
-  (interactive (list (csearch/get-region-or-prompt-string "Symbol (word or regexp)" 'csearch/search-history)) )
+  (interactive (list (csearch/read-string-region-or-prompt-string "Symbol (word or regexp)" 'csearch/search-history)) )
   (csearch/csearch regexp nil csearch/index-file))
 
 ;;;###autoload
