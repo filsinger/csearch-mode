@@ -64,17 +64,18 @@
   "Additional things to highlight in the csearch output.
 This gets tacked on the end of generated expressions.")
 
-
 ;;;###autoload
-(defun csearch/index-set (index-file)
+(defun csearch/index-set (index-path)
   "Set the current csearch index"
   (interactive "GIndex file: ")
-  (setenv "CSEARCHINDEX" index-file))
+  (let ((new-index-path (expand-file-name (if (file-directory-p index-path) (format "%s/.csearchindex" index-path) index-path))))
+	(unless (file-directory-p (file-name-directory index-path)) (error (format "Not a valid .csearchindex: %s" index-path)))
+	(setenv "CSEARCHINDEX" new-index-path) ))
 
 ;;;###autoload
 (defun csearch/index-get ()
   "Get the current csearch index path"
-  (or (getenv "CSEARCHINDEX" index-file) (file-truename "~/.csearchindex")) )
+  (or (getenv "CSEARCHINDEX") (file-truename "~/.csearchindex")) )
 
 ;;;###autoload
 (defmacro csearch/with-index-file (index-file &rest body)
@@ -144,19 +145,17 @@ csearch will use the INDEX-FILE for it's search index.
   (csearch/with-index-file index-file
 	(shell-command-to-string (format "%s --reset" (if csearch/cindex-program csearch/cindex-program "cindex")))))
 
-
 ;;;###autoload
 (defun csearch/index-add (path &optional index-file synchronous)
   "Add a path to the csearch index"
   (interactive "GPath:")
   (with-temp-message "generating cindex..."
 	(let ((cindex-command (format "%s %s %s"
-								  (shell-quote-argument (if csearch/cindex-program csearch/cindex-program "cindex")
-								  (file-truename path)
-								  (if synchronous "" "&")
-								  )))
-	  (csearch/with-index-file index-file
-		(shell-command cindex-command "*cindex*")) ))))
+								  (shell-quote-argument (if csearch/cindex-program csearch/cindex-program "cindex"))
+								  (expand-file-name path)
+								  (if synchronous "" "&") )))
+	  (csearch/with-index-file index-file (shell-command cindex-command "*cindex*") ) )))
+
 
 ;;;###autoload
 (defun csearch/index-list (&optional index-file)
