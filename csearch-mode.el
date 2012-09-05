@@ -45,11 +45,6 @@
   :type 'file
   :group 'csearch-mode)
 
-(defcustom csearch/auto-find-index t
-  "Automatically seach the directory tree upwards for '.csearchindex' when opening a file"
-  :type 'boolean
-  :group 'csearch-mode)
-
 (defvar csearch/seach-history nil
   "Search history for csearch")
 
@@ -207,9 +202,9 @@ csearch will use the INDEX-FILE for it's search index.
 
 ;;;###autoload
 (defun csearch/find-file-hook-function ()
-  ""
-  (when csearch/auto-find-index
-	(let ((tree-index (csearch/find-file-upward ".csearchindex")))
-	  (set (make-local-variable 'csearch/index-file) tree-index))))
+  "This function can be called from the find-file-hook to automatically
+seach the directory tree upwards for a \".csearchindex\" file."
+  (let ((tree-index (csearch/find-file-upward ".csearchindex")))
+	(set (make-local-variable 'csearch/index-file) tree-index)))
 
 (provide 'csearch-mode)
