@@ -4,7 +4,7 @@
 ;;
 ;; author: Jason Filsinger (https://github.com/filsinger)
 ;;
-;; version 0.2.1
+;; version 0.2.2
 ;;
 ;; note: On OS X you might need to specify the path to the csearch executable.
 ;;       The osx GUI usually doesnt contain the propper search path
@@ -21,6 +21,8 @@
 ;;
 ;;   (add-hook 'find-file-hook 'csearch/find-file-hook-function)
 ;;
+
+(require 'grep)
 
 ;;;###autoload
 (defgroup csearch-mode nil
@@ -73,7 +75,12 @@ This gets tacked on the end of generated expressions.")
 ;;;###autoload
 (defun csearch/index-get ()
   "Get the current csearch index path"
-  (or (getenv "CSEARCHINDEX") (file-truename "~/.csearchindex")) )
+  (or (getenv "CSEARCHINDEX")
+	  (if (file-exists-p (file-truename "~/.csearchindex"))
+		  (file-truename "~/.csearchindex")
+		(if (getenv "HOME")
+			(file-truename (format "%s/.csearchindex" (getenv "HOME")))
+		  nil))))
 
 ;;;###autoload
 (defmacro csearch/with-index-file (index-file &rest body)
@@ -114,7 +121,7 @@ csearch will use the INDEX-FILE for it's search index.
   	(setq buffer-read-only nil)
   	(erase-buffer)
 	(let ((csearch-command (concat
-							(if csearch/csearch-program (file-truename csearch/csearch-program) "csearch")
+							(if csearch/csearch-program csearch/csearch-program "csearch")
 							" "
 							(when case-insensitive "-i ")
 							"-n "
