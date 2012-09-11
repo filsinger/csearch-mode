@@ -78,8 +78,8 @@ This gets tacked on the end of generated expressions.")
   (or (getenv "CSEARCHINDEX")
 	  (if (file-exists-p (file-truename "~/.csearchindex"))
 		  (file-truename "~/.csearchindex")
-		(if (getenv "HOME")
-			(file-truename (format "%s/.csearchindex" (getenv "HOME")))
+		(if (getenv "HOMEPATH")
+			(file-truename (format "%s/.csearchindex" (getenv "HOMEPATH")))
 		  nil))))
 
 ;;;###autoload
