@@ -4,7 +4,7 @@
 ;;
 ;; author: Jason Filsinger (https://github.com/filsinger)
 ;;
-;; version 0.2.3
+;; version 0.3.0
 ;;
 ;; note: On OS X you might need to specify the path to the csearch executable.
 ;;       The osx GUI usually doesnt contain the propper search path
@@ -47,22 +47,45 @@
   :type 'file
   :group 'csearch-mode)
 
+;;;###autoload
+(defcustom csearch/result-line-offset 1
+  "Amount to offset the csearch result line numbers."
+  :type 'number
+  :group 'csearch-mode)
+
+;;;###autoload
+(defcustom csearch/result-regexp "^\\([a-zA-Z]*:*/*.+?\\):\\([0-9]+\\):\\(.+\\)$"
+  "csearch restult match regexp"
+  :type 'regexp
+  :group 'csearch-mode)
+
+;;;###autoload
+(defcustom csearch/match-face 'match
+  "Face name to use for csearch matches"
+  :type 'face
+  :group 'csearch-mode)
+
+;;;###autoload
+(defcustom csearch/error-face 'compilation-error
+  "Face name to use for csearch matches"
+  :type 'face
+  :group 'csearch-mode)
+
+;;;###autoload
+(defcustom csearch/hit-face 'compilation-info-face
+  "Face name to use for grep hits."
+  :type 'face
+  :group 'csearch-mode)
+
+;;;###autoload
+(defcustom csearch/context-face 'shadow
+  "Face name to use for grep context lines."
+  :type 'face
+  :group 'csearch-mode)
+
+;;;###autoload
 (defvar csearch/search-history nil
   "Search history for csearch")
-
-(defvar csearch/match-face 'match
-  "Face name to use for csearch matches")
-
-(defvar csearch/error-face 'compilation-error
-  "Face name to use for csearch matches")
-
-(defvar csearch/font-lock-keywords
-  `(("^.+\\(command not found\\): .+$" 0 csearch/error-face)
-
-	("^.+open \\(.+\\):.?+\\(no such file or directory\\)" 0 csearch/error-face)
-	)
-  "Additional things to highlight in the csearch output.
-This gets tacked on the end of generated expressions.")
 
 ;;;###autoload
 (defun csearch/index-set (index-path)
@@ -110,6 +133,52 @@ This gets tacked on the end of generated expressions.")
 	  (sort-lines nil entries-start (point)))))
 
 ;;;###autoload
+(defun csearch/filter ()
+  "Handle match highlighting escape sequences inserted by the grep process.
+This function is called from `compilation-filter-hook'."
+  (message "this is a test")
+  (save-excursion
+    (forward-line 0)
+    (let ((end (point)) beg)
+      (goto-char compilation-filter-start)
+      (forward-line 0)
+      (setq beg (point))
+      ;; Only operate on whole lines so we don't get caught with part of an
+      ;; escape sequence in one chunk and the rest in another.
+      (when (< (point) end)
+        (setq end (copy-marker end))
+        ;; Highlight grep matches and delete marking sequences.
+        (while (re-search-forward "\033\\[0?1;31m\\(.*?\\)\033\\[[0-9]*m" end 1)
+          (replace-match (propertize (match-string 1)
+                                     'face nil 'font-lock-face grep-match-face)
+                         t t))
+        ;; Delete all remaining escape sequences
+        (goto-char beg)
+        (while (re-search-forward "\033\\[[0-9;]*[mK]" end 1)
+          (replace-match "" t t))
+		;; offset the line numbers by 1 (csearch uses the 0 as the first line number, emacs uses 1
+		(when csearch/result-line-offset
+		  (goto-char beg)
+		  (while (re-search-forward csearch/result-regexp end 1)
+			(replace-match (number-to-string (+ (string-to-number (match-string 2)) csearch/result-line-offset)) t t nil 2 ) )
+		  )))))
+
+;;;###autoload
+(define-compilation-mode csearch-mode "csearch"
+  "Sets `csearch-last-buffer' and `compilation-window-height'."
+  (setq csearch-last-buffer (current-buffer))
+  (set (make-local-variable 'compilation-error-face) csearch/hit-face)
+  (set (make-local-variable 'compilation-error-regexp-alist) grep-regexp-alist)
+  ;; compilation-directory-matcher can't be nil, so we set it to a regexp that
+  ;; can never match.
+  (set (make-local-variable 'compilation-directory-matcher) '("\\`a\\`"))
+  (set (make-local-variable 'compilation-process-setup-function) 'grep-process-setup)
+  (set (make-local-variable 'compilation-disable-input) t)
+  (set (make-local-variable 'compilation-error-screen-columns) grep-error-screen-columns)
+  (add-hook 'compilation-filter-hook 'csearch/filter nil t)
+  )
+
+;;;###autoload
 (defun csearch/csearch (regexp &optional case-insensitive index-file)
   "Run the csearch tool and search for the provided REGEXP
 
@@ -117,31 +186,9 @@ If CASE-INSENSITIVE is provided then csearch will perform a
 case-insensitive search.  If INDEX-FILE is provided then
 csearch will use the INDEX-FILE for it's search index.
 "
-  (with-current-buffer (switch-to-buffer-other-window "*csearch-list*")
-  	(setq buffer-read-only nil)
-  	(erase-buffer)
-	(let ((csearch-command (concat
-							(if csearch/csearch-program csearch/csearch-program "csearch")
-							" "
-							(when case-insensitive "-i ")
-							"-n "
-							regexp)) )
-	  (insert "Type RET on an entry to open file\n\n")
-	  (insert (concat "" csearch-command "\n"))
-	  (insert (concat "Codesearch matches for regexp `" regexp "`:\n\n"))
-	  (csearch/with-index-file index-file
-		(csearch/insert-sorted-lines (shell-command-to-string csearch-command)) ) )
-	(goto-char (point-min))
-	(forward-line 3)
-	(while (re-search-forward regexp nil t)
-	  (replace-match (propertize (match-string 0) 'face nil 'font-lock-face csearch/match-face)))
-
-	(goto-char (point-min))
-	(forward-line 5)
-	(font-lock-add-keywords 'grep-mode csearch/font-lock-keywords)
-	(grep-mode)
-	(setq buffer-read-only t)))
-
+  (compilation-start
+   (format "%s %s %s" (if csearch/csearch-program csearch/csearch-program "csearch") (if case-insensitive "-in " "-n") regexp)
+   'csearch-mode))
 
 ;;;###autoload
 (defun csearch/index-reset (&optional index-file)
@@ -160,7 +207,6 @@ csearch will use the INDEX-FILE for it's search index.
 								  (expand-file-name path)
 								  (if synchronous "" "&") )))
 	  (csearch/with-index-file index-file (shell-command cindex-command "*cindex*") ) )))
-
 
 ;;;###autoload
 (defun csearch/index-list (&optional index-file)
@@ -191,7 +237,6 @@ csearch will use the INDEX-FILE for it's search index.
   "Regenerate the current csearch index using the current index paths"
   (interactive)
   (csearch/index-add-list (csearch/index-list index-file) index-file)  )
-
 
 ;;;###autoload
 (defun csearch/read-string-region-or-prompt-string (prompt &optional history non-interactive)
