@@ -4,7 +4,7 @@
 ;;
 ;; author: Jason Filsinger (https://github.com/filsinger)
 ;;
-;; version 0.3.0
+;; version 0.4.0
 ;;
 ;; note: On OS X you might need to specify the path to the csearch executable.
 ;;       The osx GUI usually doesnt contain the propper search path
@@ -72,7 +72,7 @@
   :group 'csearch-mode)
 
 ;;;###autoload
-(defcustom csearch/hit-face 'compilation-info-face
+(defcustom csearch/hit-face compilation-info-face
   "Face name to use for grep hits."
   :type 'face
   :group 'csearch-mode)
@@ -81,6 +81,14 @@
 (defcustom csearch/context-face 'shadow
   "Face name to use for grep context lines."
   :type 'face
+  :group 'csearch-mode)
+
+;;;###autoload
+(defcustom csearch/ignore-regexp-list
+  '(".xcodeproj/"
+	"/.git/")
+  "*Alist of all ignore"
+  :group 'list
   :group 'csearch-mode)
 
 ;;;###autoload
@@ -136,7 +144,6 @@
 (defun csearch/filter ()
   "Handle match highlighting escape sequences inserted by the grep process.
 This function is called from `compilation-filter-hook'."
-  (message "this is a test")
   (save-excursion
     (forward-line 0)
     (let ((end (point)) beg)
@@ -147,10 +154,17 @@ This function is called from `compilation-filter-hook'."
       ;; escape sequence in one chunk and the rest in another.
       (when (< (point) end)
         (setq end (copy-marker end))
+		;;delete the files in the ignore list
+		(let ((kill-whole-line t))
+		  (while (re-search-forward (regexp-opt csearch/ignore-regexp-list) end 1)
+			(goto-char (match-beginning 0))
+			(goto-char (point-at-bol))
+			(kill-line)))
         ;; Highlight grep matches and delete marking sequences.
+        (goto-char beg)
         (while (re-search-forward "\033\\[0?1;31m\\(.*?\\)\033\\[[0-9]*m" end 1)
           (replace-match (propertize (match-string 1)
-                                     'face nil 'font-lock-face grep-match-face)
+                                     'face nil 'font-lock-face csearch/match-face)
                          t t))
         ;; Delete all remaining escape sequences
         (goto-char beg)
@@ -161,7 +175,7 @@ This function is called from `compilation-filter-hook'."
           (goto-char beg)
           (while (re-search-forward csearch/result-regexp end 1)
             (replace-match (number-to-string (+ (string-to-number (match-string 2)) csearch/result-line-offset)) t t nil 2 ) )
-          )))))
+		  )))))
 
 ;;;###autoload
 (define-compilation-mode csearch-mode "csearch"
