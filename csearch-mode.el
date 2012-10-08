@@ -4,7 +4,7 @@
 ;;
 ;; author: Jason Filsinger (https://github.com/filsinger)
 ;;
-;; version 0.4.0
+;; version 0.4.1
 ;;
 ;; note: On OS X you might need to specify the path to the csearch executable.
 ;;       The osx GUI usually doesnt contain the propper search path
@@ -53,31 +53,26 @@
   :type 'number
   :group 'csearch-mode)
 
-;;;###autoload
 (defcustom csearch/result-regexp "^\\([a-zA-Z]*:*/*.+?\\):\\([0-9]+\\):\\(.+\\)$"
   "csearch restult match regexp"
   :type 'regexp
   :group 'csearch-mode)
 
-;;;###autoload
 (defcustom csearch/match-face 'match
   "Face name to use for csearch matches"
   :type 'face
   :group 'csearch-mode)
 
-;;;###autoload
 (defcustom csearch/error-face 'compilation-error
   "Face name to use for csearch matches"
   :type 'face
   :group 'csearch-mode)
 
-;;;###autoload
 (defcustom csearch/hit-face compilation-info-face
   "Face name to use for grep hits."
   :type 'face
   :group 'csearch-mode)
 
-;;;###autoload
 (defcustom csearch/context-face 'shadow
   "Face name to use for grep context lines."
   :type 'face
@@ -91,7 +86,6 @@
   :group 'list
   :group 'csearch-mode)
 
-;;;###autoload
 (defvar csearch/search-history nil
   "Search history for csearch")
 
