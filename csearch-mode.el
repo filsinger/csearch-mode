@@ -4,7 +4,7 @@
 ;;
 ;; author: Jason Filsinger (https://github.com/filsinger)
 ;;
-;; version 0.4.1
+;; version 0.4.2
 ;;
 ;; note: On OS X you might need to specify the path to the csearch executable.
 ;;       The osx GUI usually doesnt contain the propper search path
@@ -21,6 +21,12 @@
 ;;
 ;;   (add-hook 'find-file-hook 'csearch/find-file-hook-function)
 ;;
+;; csearch-mode can automatically re-index files on save by adding the following
+;; to your .emacs config:
+;;
+;;   (add-hook 'after-save-hook (lambda () (csearch/index-add (buffer-file-name) nil t)))
+;;
+
 
 (require 'grep)
 
@@ -197,6 +203,7 @@ csearch will use the INDEX-FILE for it's search index.
   (compilation-start
    (format "%s %s %s" (if csearch/csearch-program csearch/csearch-program "csearch") (if case-insensitive "-in " "-n") regexp)
    'csearch-mode))
+
 
 ;;;###autoload
 (defun csearch/index-reset (&optional index-file)
